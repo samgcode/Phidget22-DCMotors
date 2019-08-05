@@ -10,6 +10,8 @@ var ledGreen = new phidget22.DigitalOutput();
 var motor1 = new phidget22.DCMotor();
 var motor2 = new phidget22.DCMotor();
 
+var sonar = new phidget22.DistanceSensor();
+
 var playerInput = '';
 
 function main() {
@@ -80,6 +82,40 @@ function motorOpenError(err) {
 
 //</DCMotor functions>
 
+//<sonar functions>
+
+function onSonarAttach (ch) {
+	console.log(ch + ' attached');
+	console.log('Min Distance:' + ch.getMinDistance());
+	console.log('Max Distance:' + ch.getMaxDistance());
+}
+
+function onSonarDetach (ch) {
+	console.log(ch + ' detached');
+}
+
+function onDistanceChange (distance) {
+	if(distanceToObject <= 100) {
+		console.log('to close!');
+	}
+	console.log('distance:' + distance + ' (' + this.getDistance() + ')');
+}
+
+function onSonarReflectionsUpdate (distances, amplitudes, count) {
+	// console.log('Distance | Amplitude');
+	// for (var i = 0; i < count; i++)
+	// 	console.log(distances[i] + '\t | ' + amplitudes[i]);
+}
+
+function sonarOpen (ch) {
+	console.log('channel open');
+}
+
+function sonarOpenError (err) {
+	console.log('failed to open the channel:' + err);
+}
+
+//</sonar funnctions>
 
 function runExample() {
 
@@ -87,8 +123,6 @@ function runExample() {
 
 	motor1.setChannel(0);
 	motor2.setChannel(1);
-
-	var exTimer;
 
 	motor1.onAttach = motorAttachHandler;
 	motor1.onDetach = motorDetachHandler;
@@ -110,6 +144,13 @@ function runExample() {
 	motor2.open().then(motorOpen).catch(motorOpenError);
 	motor2.onError = onError;
 
+	sonar.onAttach = onSonarAttach;
+	sonar.onDetach = onSonarDetach;
+	sonar.onDistanceChange = onDistanceChange;
+	sonar.onSonarReflectionsUpdate = onSonarReflectionsUpdate;
+
+	sonar.open().then(sonarOpen).catch(sonarOpenError);
+
 }
 
 //<key inputs>
@@ -128,6 +169,7 @@ process.stdin.on('keypress', (str, key) => {
   } else {
     input = key.name;
 		detectButton(input);
+		setup = true;
   }
 });
 
@@ -138,21 +180,10 @@ var motor2Direction = 1; //1=forward, -1=backwords
 
 var motorSpeed = 0.5;
 
-var isSetup = false;
+var setup = false;
 
 function detectButton(input_) {
   switch (input_) {
-		case 'return':
-			if(isSetup == false) {
-				setupPhidgets();
-				isSetup = true;
-			}
-			break;
-		case 'r':
-			if(isSetup == true) {
-				ledRed.setState(!ledRed.getState());
-			}
-			break;
 		case 'up':
 			motor1On = !motor1On;
 			motor2On = !motor2On;
@@ -193,19 +224,15 @@ function detectButton(input_) {
 		motorSpeed = 0;
 	}
 	//input = '';
-	updateMotors();
+	updateMotor(motor1, motor1Direction, motor1On);
+	updateMotor(motor2, -motor2Direction, motor2On);
 }
 
-function updateMotors() {
-		if(motor1On == true) {
-			updateMotorVelocity(-motorSpeed * motor1Direction, motor1);
+function updateMotor(motor, direction, isOn) {
+		if(isOn == true) {
+			updateMotorVelocity(-motorSpeed * direction, motor);
 		} else {
-			updateMotorVelocity(0, motor1);
-		}
-		if(motor2On == true) {
-			updateMotorVelocity(motorSpeed * motor2Direction, motor2);0
-		} else {
-			updateMotorVelocity(0, motor2);
+			updateMotorVelocity(0, motor);
 		}
 }
 
@@ -219,11 +246,12 @@ function attachHandler(ch2) {
 
 function stateChangeHandler(state) {
   console.log('Port ' + this.getHubPort() + ': ' + state);
-	//console.log(this.LED.isattached);
-	if(this.LED.isattached === true) {
-		this.LED.setState(state);
+	if(setup == true) {
+		//console.log(this.LED.isattached);
+		if(this.LED.isattached === true) {
+			this.LED.setState(state);
+		}
 	}
-
 }
 
 function setupPhidgets() {
