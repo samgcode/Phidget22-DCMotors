@@ -12,6 +12,8 @@ var motor2 = new phidget22.DCMotor();
 
 var sonar = new phidget22.DistanceSensor();
 
+var wallMinDistance = 100;
+
 var playerInput = '';
 
 function main() {
@@ -82,6 +84,8 @@ function motorOpenError(err) {
 
 //</DCMotor functions>
 
+
+
 //<sonar functions>
 
 function onSonarAttach (ch) {
@@ -95,10 +99,19 @@ function onSonarDetach (ch) {
 }
 
 function onDistanceChange (distance) {
-	if(distanceToObject <= 100) {
-		console.log('to close!');
+	if(distance <= 40) {
+		motor1On = false;
+		motor2On = false;
+	} else if (distance <= wallMinDistance) {
+		wallInMinDistance();
 	}
 	console.log('distance:' + distance + ' (' + this.getDistance() + ')');
+}
+
+function wallInMinDistance() {
+	reverse();
+	setTimeout(turn, 1000);
+	setTimeout(forward, 6000);
 }
 
 function onSonarReflectionsUpdate (distances, amplitudes, count) {
@@ -184,29 +197,10 @@ var setup = false;
 
 function detectButton(input_) {
   switch (input_) {
-		case 'up':
-			motor1On = !motor1On;
-			motor2On = !motor2On;
-			motor1Direction = 1;
-			motor2Direction = 1;
-      break;
-		case 'left':
-			motor1On = !motor1On;
-			motor2On = !motor2On;
-			motor1Direction = 1;
-			motor2Direction = -1;
-      break;
-		case 'down':
-			motor1On = !motor1On;
-			motor2On = !motor2On;
-			motor1Direction = -1;
-			motor2Direction = -1;
-      break;
-		case 'right':
-			motor1On = !motor1On;
-			motor2On = !motor2On;
-			motor1Direction = -1;
-			motor2Direction = 1;
+		case 'return':
+			motor1On = true;
+			motor2On = true;
+			forward();
 			break;
 		case 'w':
 			motorSpeed += 0.1;
@@ -234,6 +228,28 @@ function updateMotor(motor, direction, isOn) {
 		} else {
 			updateMotorVelocity(0, motor);
 		}
+}
+
+function forward() {
+	motorSpeed = 1;
+	motor1Direction = 1;
+	motor2Direction = 1;
+	updateMotor(motor1, motor1Direction, motor1On);
+	updateMotor(motor2, -motor2Direction, motor2On);
+}
+
+function reverse() {
+	motor1Direction = -1;
+	motor2Direction = -1;
+	updateMotor(motor1, motor1Direction, motor1On);
+	updateMotor(motor2, -motor2Direction, motor2On);
+}
+
+function turn() {
+	motor1Direction = -1;
+	motor2Direction = 1;
+	updateMotor(motor1, motor1Direction, motor1On);
+	updateMotor(motor2, -motor2Direction, motor2On);
 }
 
 //</key inputs>
