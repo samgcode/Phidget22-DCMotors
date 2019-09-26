@@ -131,7 +131,7 @@ var motor2On = false;//left side
 var motor1Direction = 1; //1=forward, -1=backwords
 var motor2Direction = 1; //1=forward, -1=backwords
 
-var motorSpeed = 0.5;
+var motorSpeed = 1;
 
 function detectButton(input_) {
   switch (input_) {

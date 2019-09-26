@@ -12,7 +12,7 @@ var motor2 = new phidget22.DCMotor();
 
 var sonar = new phidget22.DistanceSensor();
 
-var wallMinDistance = 100;
+var wallMinDistance = 200;
 
 var playerInput = '';
 
@@ -105,13 +105,13 @@ function onDistanceChange (distance) {
 	} else if (distance <= wallMinDistance) {
 		wallInMinDistance();
 	}
-	console.log('distance:' + distance + ' (' + this.getDistance() + ')');
+	//console.log('distance:' + distance + ' (' + this.getDistance() + ')');
 }
 
 function wallInMinDistance() {
 	reverse();
-	setTimeout(turn, 1000);
-	setTimeout(forward, 6000);
+	setTimeout(turn, 500);
+	setTimeout(forward, 3000);
 }
 
 function onSonarReflectionsUpdate (distances, amplitudes, count) {
@@ -198,8 +198,10 @@ var setup = false;
 function detectButton(input_) {
   switch (input_) {
 		case 'return':
-			motor1On = true;
-			motor2On = true;
+			motor1On = !motor1On;
+			motor2On = !motor2On;
+			// setupPhidgets();
+			// setTimeout(ledOn, 1000);
 			forward();
 			break;
 		case 'w':
@@ -273,19 +275,23 @@ function stateChangeHandler(state) {
 function setupPhidgets() {
   console.log('Server connected');
 
-  ledRed.setHubPort(0);
+  ledRed.setHubPort(2);
+	swRed.setHubPort(0);
 
   ledRed.setIsHubPortDevice(true);
+	swRed.setIsHubPortDevice(true);
 
   ledRed.onAttach = attachHandler;
+	swRed.onAttach = attachHandler;
 
-  // swGreen.onStateChange = stateChangeHandler;
-  // swRed.onStateChange = stateChangeHandler;
+  swRed.onStateChange = stateChangeHandler;
 
-  // swGreen.LED = ledGreen;
-  // swRed.LED = ledRed;
+  swRed.LED = ledRed;
 
   ledRed.open();
+	swRed.open();
+
+	//ledRed.setState(true);
 
   console.log('finshed open');
 }

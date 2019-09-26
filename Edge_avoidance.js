@@ -99,7 +99,7 @@ function onSonarDetach (ch) {
 }
 
 function onDistanceChange (distance) {
- if (distance <= wallMinDistance) {
+ if (distance >= wallMinDistance) {
 		wallInMinDistance();
 	}
 	console.log('distance:' + distance + ' (' + this.getDistance() + ')');
@@ -107,8 +107,8 @@ function onDistanceChange (distance) {
 
 function wallInMinDistance() {
 	reverse();
-	setTimeout(turn, 1000);
-	setTimeout(forward, 6000);
+	setTimeout(turn, 2000);
+	setTimeout(forward, 7000);
 }
 
 function onSonarReflectionsUpdate (distances, amplitudes, count) {
