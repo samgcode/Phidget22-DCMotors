@@ -49,6 +49,7 @@ function motorAttachHandler(ch) {
 
 	if(ch === motor2) {
 		console.log('Press enter to setup');
+		setTimeout(setupBasicPhidgets, 5000);
 	}
 }
 
@@ -99,13 +100,13 @@ function onSonarDetach (ch) {
 }
 
 function onDistanceChange (distance) {
-	if(distance <= 40) {
+	if(distance <= 50) {
 		motor1On = false;
 		motor2On = false;
 	} else if (distance <= wallMinDistance) {
 		wallInMinDistance();
 	}
-	//console.log('distance:' + distance + ' (' + this.getDistance() + ')');
+	console.log('distance:' + distance + ' (' + this.getDistance() + ')');
 }
 
 function wallInMinDistance() {
@@ -129,6 +130,9 @@ function sonarOpenError (err) {
 }
 
 //</sonar funnctions>
+
+
+
 
 function runExample() {
 
@@ -182,7 +186,6 @@ process.stdin.on('keypress', (str, key) => {
   } else {
     input = key.name;
 		detectButton(input);
-		setup = true;
   }
 });
 
@@ -198,11 +201,7 @@ var setup = false;
 function detectButton(input_) {
   switch (input_) {
 		case 'return':
-			motor1On = !motor1On;
-			motor2On = !motor2On;
-			// setupPhidgets();
-			// setTimeout(ledOn, 1000);
-			forward();
+			//setupBasicPhidgets();
 			break;
 		case 'w':
 			motorSpeed += 0.1;
@@ -256,10 +255,21 @@ function turn() {
 
 //</key inputs>
 
+function startRoomba(led) {
+	led.setState(false);
+	motor1On = !motor1On;
+	motor2On = !motor2On;
+	forward();
+}
+
 //setup regular phidgets
 
 function attachHandler(ch2) {
   console.log('ch connected', ch2 + " " + ch2.getHubPort());
+	if(ch2 === ledRed) {
+		ch2.setState(true);
+		setup = true;
+	}
 }
 
 function stateChangeHandler(state) {
@@ -267,12 +277,14 @@ function stateChangeHandler(state) {
 	if(setup == true) {
 		//console.log(this.LED.isattached);
 		if(this.LED.isattached === true) {
-			this.LED.setState(state);
+			if(state == true) {
+				startRoomba(this.LED);
+			}
 		}
 	}
 }
 
-function setupPhidgets() {
+function setupBasicPhidgets() {
   console.log('Server connected');
 
   ledRed.setHubPort(2);
