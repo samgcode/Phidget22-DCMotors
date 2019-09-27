@@ -101,12 +101,11 @@ function onSonarDetach (ch) {
 
 function onDistanceChange (distance) {
 	if(distance <= 50) {
-		motor1On = false;
-		motor2On = false;
+		stopRoomba();
 	} else if (distance <= wallMinDistance) {
 		wallInMinDistance();
 	}
-	console.log('distance:' + distance + ' (' + this.getDistance() + ')');
+	//console.log('distance:' + distance + ' (' + this.getDistance() + ')');
 }
 
 function wallInMinDistance() {
@@ -255,11 +254,22 @@ function turn() {
 
 //</key inputs>
 
-function startRoomba(led) {
-	led.setState(false);
+function startRoomba() {
+	ledRed.setState(false);
+	started = true;
 	motor1On = !motor1On;
 	motor2On = !motor2On;
 	forward();
+}
+
+function stopRoomba() {
+	ledRed.setState(true);
+	console.log("test");
+	motor1On = false;
+	motor2On = false;
+	started = false;
+	updateMotor(motor1, motor1Direction, motor1On);
+	updateMotor(motor2, -motor2Direction, motor2On);
 }
 
 //setup regular phidgets
@@ -272,13 +282,19 @@ function attachHandler(ch2) {
 	}
 }
 
+var started = false;
+
 function stateChangeHandler(state) {
   console.log('Port ' + this.getHubPort() + ': ' + state);
 	if(setup == true) {
 		//console.log(this.LED.isattached);
 		if(this.LED.isattached === true) {
 			if(state == true) {
-				startRoomba(this.LED);
+				if(started == false) {
+					startRoomba();
+				} else {
+					stopRoomba();
+				}
 			}
 		}
 	}
